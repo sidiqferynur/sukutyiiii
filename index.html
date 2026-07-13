@@ -181,7 +181,6 @@
             border: 1px solid rgba(255, 170, 68, 0.2);
             padding: 10px 12px;
             border-radius: 8px;
-            transition: background 0.2s;
         }
         .upgrade-info {
             text-align: left;
@@ -195,7 +194,6 @@
             font-size: 11px;
             color: #b39980;
             margin-top: 1px;
-                text-align: left;
         }
         .up-btn {
             background: linear-gradient(to bottom, #ffaa44, #d47a22);
@@ -206,34 +204,22 @@
             font-weight: bold;
             font-size: 12px;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             min-width: 90px;
         }
         .up-btn:disabled {
             background: #3a3025;
             color: #776655;
-            box-shadow: none;
             cursor: not-allowed;
         }
 
-        /* Animations */
         @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-6px) rotate(5deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
         }
         @keyframes flyUp {
             0% { transform: translateY(0) scale(1); opacity: 1; }
             100% { transform: translateY(-80px) scale(0.8); opacity: 0; }
-        }
-
-        /* Scrollbar styling */
-        .upgrades-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .upgrades-list::-webkit-scrollbar-thumb {
-            background: #ffaa44;
-            border-radius: 2px;
         }
     </style>
 </head>
@@ -250,48 +236,43 @@
         </div>
     </header>
 
-    <main class="game-viewport" id="viewport">
-        <!-- Core Action Target -->
+    <main class="game-viewport">
         <div class="sand-core-container">
             <div class="sand-core" id="sand-core">
-                <div class="core-icon">⏳</div>
+                <div class="core-icon">🏜️</div>
                 <div class="core-text">KENDALIKAN PASIR</div>
             </div>
         </div>
 
-        <!-- Dynamic Event Message -->
         <div class="event-box" id="event-box">
             Selamat datang di Gurun Zarek-Tul, Kutyi. Dengarkan bisikan pasir...
         </div>
     </main>
 
     <div class="bottom-ui">
-        <div class="section-title">Manipulasi & Seni Sihir (Upgrades)</div>
+        <div class="section-title">Sihir Kinetik & Gerakan (Upgrades)</div>
         
         <div class="upgrades-list">
-            <!-- Upgrade 1 -->
             <div class="upgrade-card">
                 <div class="upgrade-info">
                     <div class="up-name">Sepatu Seluncur Magis</div>
-                    <div class="up-desc">Sihir parkour (+1 Energi per Tap)</div>
+                    <div class="up-desc">Parkour gurun (+1 Energi/Tap)</div>
                 </div>
                 <button class="up-btn" id="btn-up1" onclick="buyUpgrade(1)">Beli: 15</button>
             </div>
             
-            <!-- Upgrade 2 -->
             <div class="upgrade-card">
                 <div class="upgrade-info">
                     <div class="up-name">Sihir Pengendali Pasir</div>
-                    <div class="up-desc">Senjata pasir otomatis (+1 Energi/detik)</div>
+                    <div class="up-desc">Pedang pasir otomatis (+1 Pasir/detik)</div>
                 </div>
                 <button class="up-btn" id="btn-up2" onclick="buyUpgrade(2)">Beli: 50</button>
             </div>
 
-            <!-- Upgrade 3 -->
             <div class="upgrade-card">
                 <div class="upgrade-info">
                     <div class="up-name">Penjinak Badai Kuno</div>
-                    <div class="up-desc">Memanggil pusaran energi (+5 Energi/detik)</div>
+                    <div class="up-desc">Memanggil pusaran badai (+5 Pasir/detik)</div>
                 </div>
                 <button class="up-btn" id="btn-up3" onclick="buyUpgrade(3)">Beli: 250</button>
             </div>
@@ -299,11 +280,8 @@
     </div>
 
     <script>
-        // Game State Variables
         let gameState = {
-            sand: 0,
-            sandPerClick: 1,
-            autoSand: 0,
+            sand: 0, sandPerClick: 1, autoSand: 0,
             upgrades: {
                 click: { level: 0, cost: 15, baseCost: 15, multiplier: 1.6 },
                 auto1: { level: 0, cost: 50, baseCost: 50, multiplier: 1.7 },
@@ -311,99 +289,69 @@
             }
         };
 
-        // DOM Elements
         const sandCore = document.getElementById('sand-core');
-        const viewport = document.getElementById('viewport');
         const sandCountEl = document.getElementById('sand-count');
         const powerCountEl = document.getElementById('power-count');
         const autoCountEl = document.getElementById('auto-count');
         const eventBox = document.getElementById('event-box');
 
-        // Random Narrative Lore events
         const loreEvents = [
             "Badai pasir kecil melintasi reruntuhan kuil kuno Zarek-Tul.",
             "Kamu mendengar bisikan sayup-sayup dari jiwa kuno di bawah pasir.",
             "Sebuah mekanisme robot kuno bertenaga sihir terdeteksi di kejauhan.",
             "Pasir di sekitarmu mulai berputar mengikuti gerakan tanganmu.",
-            "Suku terakhir mengirimkan sinyal rasa terima kasih atas pasokan air.",
-            "Gerakan parkour barumu membuat pengumpulan energi lebih efisien."
+            "Suku terakhir mengirimkan sinyal terima kasih atas energi yang kau kumpulkan."
         ];
 
-        // Core Tap Event
-        sandCore.addEventListener('click', (e) => {
+        function doTap(x, y) {
             gameState.sand += gameState.sandPerClick;
-            
-            // Create floating particle text
-            createFloatingText(e.clientX, e.clientY, `+${gameState.sandPerClick}`);
-            
+            createFloatingText(x, y, `+${gameState.sandPerClick}`);
             updateUI();
-        });
+        }
 
-        // Touch-compatible coordinate handling for floating text
+        sandCore.addEventListener('click', (e) => { doTap(e.clientX, e.clientY); });
         sandCore.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            gameState.sand += gameState.sandPerClick;
-            
             const touch = e.touches[0];
-            createFloatingText(touch.clientX, touch.clientY, `+${gameState.sandPerClick}`);
-            
-            updateUI();
+            doTap(touch.clientX, touch.clientY);
         });
 
         function createFloatingText(x, y, text) {
             const span = document.createElement('span');
             span.classList.add('floating-text');
             span.innerText = text;
-            
             if (!x || !y) {
                 const rect = sandCore.getBoundingClientRect();
-                x = rect.left + rect.width / 2;
-                y = rect.top + rect.height / 2;
+                x = rect.left + rect.width / 2; y = rect.top + rect.height / 2;
             }
-
-            span.style.left = `${x - 15}px`;
-            span.style.top = `${y - 20}px`;
-            
+            span.style.left = `${x - 15}px`; span.style.top = `${y - 20}px`;
             document.body.appendChild(span);
-            
-            setTimeout(() => {
-                span.remove();
-            }, 600);
+            setTimeout(() => span.remove(), 600);
         }
 
-        // Upgrade Purchasing Logic
         function buyUpgrade(id) {
             if (id === 1 && gameState.sand >= gameState.upgrades.click.cost) {
                 gameState.sand -= gameState.upgrades.click.cost;
                 gameState.sandPerClick += 1;
                 gameState.upgrades.click.level++;
                 gameState.upgrades.click.cost = Math.floor(gameState.upgrades.click.baseCost * Math.pow(gameState.upgrades.click.multiplier, gameState.upgrades.click.level));
-                triggerEvent("Kamu meningkatkan teknik Sand-Surfing!");
+                eventBox.innerText = "Kamu meningkatkan teknik Sand-Surfing gurun!";
             } else if (id === 2 && gameState.sand >= gameState.upgrades.auto1.cost) {
                 gameState.sand -= gameState.upgrades.auto1.cost;
                 gameState.autoSand += 1;
                 gameState.upgrades.auto1.level++;
                 gameState.upgrades.auto1.cost = Math.floor(gameState.upgrades.auto1.baseCost * Math.pow(gameState.upgrades.auto1.multiplier, gameState.upgrades.auto1.level));
-                triggerEvent("Sihir Pengendali Pasir otomatis mulai mengumpulkan esensi.");
+                eventBox.innerText = "Sihir Kinetik otomatis mulai mengumpulkan serpihan pasir.";
             } else if (id === 3 && gameState.sand >= gameState.upgrades.auto2.cost) {
                 gameState.sand -= gameState.upgrades.auto2.cost;
                 gameState.autoSand += 5;
                 gameState.upgrades.auto2.level++;
                 gameState.upgrades.auto2.cost = Math.floor(gameState.upgrades.auto2.baseCost * Math.pow(gameState.upgrades.auto2.multiplier, gameState.upgrades.auto2.level));
-                triggerEvent("Pusaran energi Badai Kuno berhasil dijinakkan!");
+                eventBox.innerText = "Pusaran Badai Kuno berhasil dijinakkan untuk membantumu!";
             }
             updateUI();
         }
 
-        function triggerEvent(message) {
-            eventBox.innerText = message;
-            eventBox.style.borderLeftColor = "#ffcc66";
-            setTimeout(() => {
-                eventBox.style.borderLeftColor = "#ffaa44";
-            }, 500);
-        }
-
-        // UI Refresh Loop
         function updateUI() {
             sandCountEl.innerText = Math.floor(gameState.sand);
             powerCountEl.innerText = gameState.sandPerClick;
@@ -411,15 +359,12 @@
 
             document.getElementById('btn-up1').innerText = `Beli: ${gameState.upgrades.click.cost}`;
             document.getElementById('btn-up1').disabled = gameState.sand < gameState.upgrades.click.cost;
-
             document.getElementById('btn-up2').innerText = `Beli: ${gameState.upgrades.auto1.cost}`;
             document.getElementById('btn-up2').disabled = gameState.sand < gameState.upgrades.auto1.cost;
-
             document.getElementById('btn-up3').innerText = `Beli: ${gameState.upgrades.auto2.cost}`;
             document.getElementById('btn-up3').disabled = gameState.sand < gameState.upgrades.auto2.cost;
         }
 
-        // Game Loop (Every 1 Second)
         setInterval(() => {
             if (gameState.autoSand > 0) {
                 gameState.sand += gameState.autoSand;
@@ -427,13 +372,12 @@
             }
         }, 1000);
 
-        // Random Lore Loop (Every 12 Seconds)
         setInterval(() => {
             const randomIndex = Math.floor(Math.random() * loreEvents.length);
-            if (eventBox.innerText.indexOf("Kamu") !== 0 && eventBox.innerText.indexOf("Sihir") !== 0 && eventBox.innerText.indexOf("Pusaran") !== 0) {
+            if (!eventBox.innerText.startsWith("Kamu") && !eventBox.innerText.startsWith("Sihir") && !eventBox.innerText.startsWith("Pusaran")) {
                 eventBox.innerText = loreEvents[randomIndex];
             }
-        }, 12000);
+        }, 9000);
 
         updateUI();
     </script>
