@@ -3,89 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sukutyi: Sand Clicker</title>
+    <title>Sukutyi: The Whispering Sands</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-        }
-        body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #ff9933, #663300);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a0f00, #3d2305, #120a00);
+            color: #f5e6d3;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Game Header / HUD */
+        header {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            padding: 15px 20px;
+            text-align: center;
+            z-index: 10;
+        }
+        h1 {
+            font-size: 24px;
+            letter-spacing: 2px;
+            color: #ffaa44;
+            text-shadow: 0 0 10px rgba(255, 170, 68, 0.5);
+            font-weight: 700;
+        }
+        .subtitle {
+            font-size: 11px;
+            color: #cc9966;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+        
+        /* Stats Panel */
+        .hud-stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(30, 20, 10, 0.7);
+            border: 1px solid #ffaa44;
+            border-radius: 10px;
+            padding: 8px;
+            margin-top: 10px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .stat-box {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .stat-val {
+            color: #ffcc66;
+        }
+
+        /* Main Game Canvas/Area */
+        .game-viewport {
+            flex-grow: 1;
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            height: 100vh;
-            overflow: hidden;
-            text-align: center;
+            justify-content: center;
+            padding: 10px;
         }
-        header {
-            margin-top: 20px;
+
+        /* The Sand Core (Main Action Button) */
+        .sand-core-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin-bottom: 10px;
         }
-        h1 {
-            margin: 0;
-            font-size: 28px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        .stats {
-            font-size: 20px;
-            margin-top: 5px;
-            font-weight: bold;
-            background: rgba(0,0,0,0.3);
-            padding: 5px 15px;
-            border-radius: 20px;
-        }
-        #game-button {
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, #ffcc66, #ff9900);
+        .sand-core {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #ffcc66 0%, #d47a22 60%, #663300 100%);
             border-radius: 50%;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 -5px 15px rgba(0,0,0,0.4);
+            border: 4px solid #ffaa44;
+            box-shadow: 0 0 30px rgba(212, 122, 34, 0.6), inset 0 0 20px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.05s ease;
+            touch-action: manipulation;
+        }
+        .sand-core:active {
+            transform: scale(0.92);
+        }
+        .core-icon {
+            font-size: 45px;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+        .core-text {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #fff;
+            text-shadow: 1px 1px 3px #000;
+            margin-top: 5px;
+        }
+
+        /* Floating Text Effect */
+        .floating-text {
+            position: absolute;
+            color: #ffcc66;
+            font-weight: bold;
+            font-size: 20px;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px #000;
+            animation: flyUp 0.6s ease-out forwards;
+            z-index: 100;
+        }
+
+        /* Event / Status Alert Box */
+        .event-box {
+            width: 90%;
+            max-width: 340px;
+            background: rgba(20, 10, 5, 0.85);
+            border-left: 4px solid #ffaa44;
+            padding: 8px 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 12px;
+            min-height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
-            cursor: pointer;
-            transition: transform 0.1s ease;
-            border: 5px solid #fff;
-            touch-action: manipulation;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            margin-top: 5px;
         }
-        #game-button:active {
-            transform: scale(0.92);
-        }
-        .shop-container {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 20px;
+
+        /* Bottom Controls & Upgrades Tab */
+        .bottom-ui {
+            background: rgba(15, 10, 5, 0.95);
+            border-top: 2px solid #ffaa44;
             border-radius: 20px 20px 0 0;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+            padding: 15px;
+            width: 100%;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
         }
-        .shop-item {
+        
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #cc9966;
+            margin-bottom: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .upgrades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .upgrade-card {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255,255,255,0.1);
-            padding: 12px 20px;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 170, 68, 0.2);
+            padding: 10px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
         }
-        .shop-btn {
-            background: #ff9900;
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
+        .upgrade-info {
+            text-align: left;
+        }
+        .up-name {
+            font-size: 13px;
             font-weight: bold;
-            font-size: 14px;
+            color: #fff;
         }
-        .shop-btn:disabled {
-            background: #555;
-            color: #aaa;
+        .up-desc {
+            font-size: 11px;
+            color: #b39980;
+            margin-top: 1px;
+                text-align: left;
+        }
+        .up-btn {
+            background: linear-gradient(to bottom, #ffaa44, #d47a22);
+            border: none;
+            color: #1a0f00;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            min-width: 90px;
+        }
+        .up-btn:disabled {
+            background: #3a3025;
+            color: #776655;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        @keyframes flyUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-80px) scale(0.8); opacity: 0; }
+        }
+
+        /* Scrollbar styling */
+        .upgrades-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .upgrades-list::-webkit-scrollbar-thumb {
+            background: #ffaa44;
+            border-radius: 2px;
         }
     </style>
 </head>
@@ -93,62 +241,201 @@
 
     <header>
         <h1>SUKUTYI</h1>
-        <p style="margin: 5px 0; font-size: 14px; opacity: 0.8;">Kumpulkan Energi Pasir Gurun</p>
-        <div class="stats">⏳ <span id="sand-count">0</span> Pasir</div>
+        <div class="subtitle">The Whispering Sands</div>
+        
+        <div class="hud-stats">
+            <div class="stat-box">⏳ Energi: <span id="sand-count" class="stat-val">0</span></div>
+            <div class="stat-box">⚔️ Power: <span id="power-count" class="stat-val">1</span>/tap</div>
+            <div class="stat-box">🏜️ Auto: <span id="auto-count" class="stat-val">0</span>/s</div>
+        </div>
     </header>
 
-    <!-- Tombol Utama untuk di-tap di HP -->
-    <div id="game-button">⏳</div>
-
-    <div class="shop-container">
-        <div class="shop-item">
-            <div>
-                <div style="font-weight: bold; text-align: left;">Sepatu Seluncur</div>
-                <div style="font-size: 12px; opacity: 0.7; text-align: left;">+1 Pasir per klik</div>
+    <main class="game-viewport" id="viewport">
+        <!-- Core Action Target -->
+        <div class="sand-core-container">
+            <div class="sand-core" id="sand-core">
+                <div class="core-icon">⏳</div>
+                <div class="core-text">KENDALIKAN PASIR</div>
             </div>
-            <button class="shop-btn" id="upgrade-click" onclick="buyUpgrade()">Beli (Cost: 10)</button>
         </div>
-        <div style="font-size: 11px; opacity: 0.5;">Sukutyi v1.0 • Bisa dimainkan di browser HP</div>
+
+        <!-- Dynamic Event Message -->
+        <div class="event-box" id="event-box">
+            Selamat datang di Gurun Zarek-Tul, Kutyi. Dengarkan bisikan pasir...
+        </div>
+    </main>
+
+    <div class="bottom-ui">
+        <div class="section-title">Manipulasi & Seni Sihir (Upgrades)</div>
+        
+        <div class="upgrades-list">
+            <!-- Upgrade 1 -->
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <div class="up-name">Sepatu Seluncur Magis</div>
+                    <div class="up-desc">Sihir parkour (+1 Energi per Tap)</div>
+                </div>
+                <button class="up-btn" id="btn-up1" onclick="buyUpgrade(1)">Beli: 15</button>
+            </div>
+            
+            <!-- Upgrade 2 -->
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <div class="up-name">Sihir Pengendali Pasir</div>
+                    <div class="up-desc">Senjata pasir otomatis (+1 Energi/detik)</div>
+                </div>
+                <button class="up-btn" id="btn-up2" onclick="buyUpgrade(2)">Beli: 50</button>
+            </div>
+
+            <!-- Upgrade 3 -->
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <div class="up-name">Penjinak Badai Kuno</div>
+                    <div class="up-desc">Memanggil pusaran energi (+5 Energi/detik)</div>
+                </div>
+                <button class="up-btn" id="btn-up3" onclick="buyUpgrade(3)">Beli: 250</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        let sand = 0;
-        let sandPerClick = 1;
-        let upgradeCost = 10;
+        // Game State Variables
+        let gameState = {
+            sand: 0,
+            sandPerClick: 1,
+            autoSand: 0,
+            upgrades: {
+                click: { level: 0, cost: 15, baseCost: 15, multiplier: 1.6 },
+                auto1: { level: 0, cost: 50, baseCost: 50, multiplier: 1.7 },
+                auto2: { level: 0, cost: 250, baseCost: 250, multiplier: 1.8 }
+            }
+        };
 
+        // DOM Elements
+        const sandCore = document.getElementById('sand-core');
+        const viewport = document.getElementById('viewport');
         const sandCountEl = document.getElementById('sand-count');
-        const gameBtn = document.getElementById('game-button');
-        const upgradeBtn = document.getElementById('upgrade-click');
+        const powerCountEl = document.getElementById('power-count');
+        const autoCountEl = document.getElementById('auto-count');
+        const eventBox = document.getElementById('event-box');
 
-        // Efek Klik / Tap di HP
-        gameBtn.addEventListener('click', () => {
-            sand += sandPerClick;
-            updateDisplay();
+        // Random Narrative Lore events
+        const loreEvents = [
+            "Badai pasir kecil melintasi reruntuhan kuil kuno Zarek-Tul.",
+            "Kamu mendengar bisikan sayup-sayup dari jiwa kuno di bawah pasir.",
+            "Sebuah mekanisme robot kuno bertenaga sihir terdeteksi di kejauhan.",
+            "Pasir di sekitarmu mulai berputar mengikuti gerakan tanganmu.",
+            "Suku terakhir mengirimkan sinyal rasa terima kasih atas pasokan air.",
+            "Gerakan parkour barumu membuat pengumpulan energi lebih efisien."
+        ];
+
+        // Core Tap Event
+        sandCore.addEventListener('click', (e) => {
+            gameState.sand += gameState.sandPerClick;
+            
+            // Create floating particle text
+            createFloatingText(e.clientX, e.clientY, `+${gameState.sandPerClick}`);
+            
+            updateUI();
         });
 
-        function buyUpgrade() {
-            if (sand >= upgradeCost) {
-                sand -= upgradeCost;
-                sandPerClick += 1;
-                upgradeCost = Math.floor(upgradeCost * 1.8);
-                updateDisplay();
-            }
-        }
-
-        function updateDisplay() {
-            sandCountEl.innerText = sand;
-            upgradeBtn.innerText = `Beli (Cost: ${upgradeCost})`;
+        // Touch-compatible coordinate handling for floating text
+        sandCore.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            gameState.sand += gameState.sandPerClick;
             
-            // Cek apakah uang cukup untuk upgrade
-            if (sand >= upgradeCost) {
-                upgradeBtn.disabled = false;
-            } else {
-                upgradeBtn.disabled = true;
+            const touch = e.touches[0];
+            createFloatingText(touch.clientX, touch.clientY, `+${gameState.sandPerClick}`);
+            
+            updateUI();
+        });
+
+        function createFloatingText(x, y, text) {
+            const span = document.createElement('span');
+            span.classList.add('floating-text');
+            span.innerText = text;
+            
+            if (!x || !y) {
+                const rect = sandCore.getBoundingClientRect();
+                x = rect.left + rect.width / 2;
+                y = rect.top + rect.height / 2;
             }
+
+            span.style.left = `${x - 15}px`;
+            span.style.top = `${y - 20}px`;
+            
+            document.body.appendChild(span);
+            
+            setTimeout(() => {
+                span.remove();
+            }, 600);
         }
 
-        // Jalankan fungsi pertama kali
-        updateDisplay();
+        // Upgrade Purchasing Logic
+        function buyUpgrade(id) {
+            if (id === 1 && gameState.sand >= gameState.upgrades.click.cost) {
+                gameState.sand -= gameState.upgrades.click.cost;
+                gameState.sandPerClick += 1;
+                gameState.upgrades.click.level++;
+                gameState.upgrades.click.cost = Math.floor(gameState.upgrades.click.baseCost * Math.pow(gameState.upgrades.click.multiplier, gameState.upgrades.click.level));
+                triggerEvent("Kamu meningkatkan teknik Sand-Surfing!");
+            } else if (id === 2 && gameState.sand >= gameState.upgrades.auto1.cost) {
+                gameState.sand -= gameState.upgrades.auto1.cost;
+                gameState.autoSand += 1;
+                gameState.upgrades.auto1.level++;
+                gameState.upgrades.auto1.cost = Math.floor(gameState.upgrades.auto1.baseCost * Math.pow(gameState.upgrades.auto1.multiplier, gameState.upgrades.auto1.level));
+                triggerEvent("Sihir Pengendali Pasir otomatis mulai mengumpulkan esensi.");
+            } else if (id === 3 && gameState.sand >= gameState.upgrades.auto2.cost) {
+                gameState.sand -= gameState.upgrades.auto2.cost;
+                gameState.autoSand += 5;
+                gameState.upgrades.auto2.level++;
+                gameState.upgrades.auto2.cost = Math.floor(gameState.upgrades.auto2.baseCost * Math.pow(gameState.upgrades.auto2.multiplier, gameState.upgrades.auto2.level));
+                triggerEvent("Pusaran energi Badai Kuno berhasil dijinakkan!");
+            }
+            updateUI();
+        }
+
+        function triggerEvent(message) {
+            eventBox.innerText = message;
+            eventBox.style.borderLeftColor = "#ffcc66";
+            setTimeout(() => {
+                eventBox.style.borderLeftColor = "#ffaa44";
+            }, 500);
+        }
+
+        // UI Refresh Loop
+        function updateUI() {
+            sandCountEl.innerText = Math.floor(gameState.sand);
+            powerCountEl.innerText = gameState.sandPerClick;
+            autoCountEl.innerText = gameState.autoSand;
+
+            document.getElementById('btn-up1').innerText = `Beli: ${gameState.upgrades.click.cost}`;
+            document.getElementById('btn-up1').disabled = gameState.sand < gameState.upgrades.click.cost;
+
+            document.getElementById('btn-up2').innerText = `Beli: ${gameState.upgrades.auto1.cost}`;
+            document.getElementById('btn-up2').disabled = gameState.sand < gameState.upgrades.auto1.cost;
+
+            document.getElementById('btn-up3').innerText = `Beli: ${gameState.upgrades.auto2.cost}`;
+            document.getElementById('btn-up3').disabled = gameState.sand < gameState.upgrades.auto2.cost;
+        }
+
+        // Game Loop (Every 1 Second)
+        setInterval(() => {
+            if (gameState.autoSand > 0) {
+                gameState.sand += gameState.autoSand;
+                updateUI();
+            }
+        }, 1000);
+
+        // Random Lore Loop (Every 12 Seconds)
+        setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * loreEvents.length);
+            if (eventBox.innerText.indexOf("Kamu") !== 0 && eventBox.innerText.indexOf("Sihir") !== 0 && eventBox.innerText.indexOf("Pusaran") !== 0) {
+                eventBox.innerText = loreEvents[randomIndex];
+            }
+        }, 12000);
+
+        updateUI();
     </script>
 </body>
 </html>
