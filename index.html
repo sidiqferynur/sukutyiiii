@@ -3,383 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sukutyi: The Whispering Sands</title>
+    <title>Sukutyi Adventure</title>
+    <!-- Menggunakan Phaser 3 dari CDN agar tidak perlu download file framework -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
+        body {
             margin: 0;
             padding: 0;
-        }
-        body {
-            background: linear-gradient(135deg, #1a0f00, #3d2305, #120a00);
-            color: #f5e6d3;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #222;
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Game Header / HUD */
-        header {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
-            padding: 15px 20px;
-            text-align: center;
-            z-index: 10;
-        }
-        h1 {
-            font-size: 24px;
-            letter-spacing: 2px;
-            color: #ffaa44;
-            text-shadow: 0 0 10px rgba(255, 170, 68, 0.5);
-            font-weight: 700;
-        }
-        .subtitle {
-            font-size: 11px;
-            color: #cc9966;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-        
-        /* Stats Panel */
-        .hud-stats {
-            display: flex;
-            justify-content: space-around;
-            background: rgba(30, 20, 10, 0.7);
-            border: 1px solid #ffaa44;
-            border-radius: 10px;
-            padding: 8px;
-            margin-top: 10px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-        .stat-box {
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .stat-val {
-            color: #ffcc66;
-        }
-
-        /* Main Game Canvas/Area */
-        .game-viewport {
-            flex-grow: 1;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 10px;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
         }
-
-        /* The Sand Core (Main Action Button) */
-        .sand-core-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            margin-bottom: 10px;
-        }
-        .sand-core {
+        #game-container {
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, #ffcc66 0%, #d47a22 60%, #663300 100%);
-            border-radius: 50%;
-            border: 4px solid #ffaa44;
-            box-shadow: 0 0 30px rgba(212, 122, 34, 0.6), inset 0 0 20px rgba(0,0,0,0.6);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.05s ease;
-            touch-action: manipulation;
-        }
-        .sand-core:active {
-            transform: scale(0.92);
-        }
-        .core-icon {
-            font-size: 45px;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
-            animation: float 3s ease-in-out infinite;
-        }
-        .core-text {
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            color: #fff;
-            text-shadow: 1px 1px 3px #000;
-            margin-top: 5px;
-        }
-
-        /* Floating Text Effect */
-        .floating-text {
-            position: absolute;
-            color: #ffcc66;
-            font-weight: bold;
-            font-size: 20px;
-            pointer-events: none;
-            text-shadow: 2px 2px 4px #000;
-            animation: flyUp 0.6s ease-out forwards;
-            z-index: 100;
-        }
-
-        /* Event / Status Alert Box */
-        .event-box {
-            width: 90%;
-            max-width: 340px;
-            background: rgba(20, 10, 5, 0.85);
-            border-left: 4px solid #ffaa44;
-            padding: 8px 12px;
-            border-radius: 0 8px 8px 0;
-            font-size: 12px;
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            margin-top: 5px;
-        }
-
-        /* Bottom Controls & Upgrades Tab */
-        .bottom-ui {
-            background: rgba(15, 10, 5, 0.95);
-            border-top: 2px solid #ffaa44;
-            border-radius: 20px 20px 0 0;
-            padding: 15px;
-            width: 100%;
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
-        }
-        
-        .section-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #cc9966;
-            margin-bottom: 10px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .upgrades-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 180px;
-            overflow-y: auto;
-        }
-
-        .upgrade-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 170, 68, 0.2);
-            padding: 10px 12px;
-            border-radius: 8px;
-        }
-        .upgrade-info {
-            text-align: left;
-        }
-        .up-name {
-            font-size: 13px;
-            font-weight: bold;
-            color: #fff;
-        }
-        .up-desc {
-            font-size: 11px;
-            color: #b39980;
-            margin-top: 1px;
-        }
-        .up-btn {
-            background: linear-gradient(to bottom, #ffaa44, #d47a22);
-            border: none;
-            color: #1a0f00;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            min-width: 90px;
-        }
-        .up-btn:disabled {
-            background: #3a3025;
-            color: #776655;
-            cursor: not-allowed;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-            100% { transform: translateY(0px); }
-        }
-        @keyframes flyUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-80px) scale(0.8); opacity: 0; }
+            max-width: 450px; /* Rasio layar HP vertikal */
+            max-height: 800px;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>SUKUTYI</h1>
-        <div class="subtitle">The Whispering Sands</div>
+<div id="game-container"></div>
+
+<script>
+    // Konfigurasi Game untuk Layar HP (Mobile-First)
+    const config = {
+        type: Phaser.AUTO,
+        width: 450,
+        height: 800,
+        parent: 'game-container',
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 1200 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+    let player;
+    let obstacles;
+    let score = 0;
+    let scoreText;
+    let isGameOver = false;
+    let spawnTimer;
+
+    function preload() {
+        // Karena tidak ada aset gambar eksternal, kita akan membuat grafik/karakter 
+        // menggunakan bentuk primitif (Canvas Canvas) di fungsi Create agar game langsung jalan.
+    }
+
+    function create() {
+        // 1. Background
+        this.add.rectangle(225, 400, 450, 800, 0x87CEEB); // Langit Biru
+        this.add.rectangle(225, 750, 450, 100, 0x4d2922); // Tanah Cokelat
         
-        <div class="hud-stats">
-            <div class="stat-box">⏳ Energi: <span id="sand-count" class="stat-val">0</span></div>
-            <div class="stat-box">⚔️ Power: <span id="power-count" class="stat-val">1</span>/tap</div>
-            <div class="stat-box">🏜️ Auto: <span id="auto-count" class="stat-val">0</span>/s</div>
-        </div>
-    </header>
+        // Rumput
+        let ground = this.physics.add.staticGroup();
+        let groundLine = this.add.rectangle(225, 710, 450, 20, 0x228B22);
+        ground.add(groundLine);
 
-    <main class="game-viewport">
-        <div class="sand-core-container">
-            <div class="sand-core" id="sand-core">
-                <div class="core-icon">🏜️</div>
-                <div class="core-text">KENDALIKAN PASIR</div>
-            </div>
-        </div>
-
-        <div class="event-box" id="event-box">
-            Selamat datang di Gurun Zarek-Tul, Kutyi. Dengarkan bisikan pasir...
-        </div>
-    </main>
-
-    <div class="bottom-ui">
-        <div class="section-title">Sihir Kinetik & Gerakan (Upgrades)</div>
+        // 2. Karakter Utama: "Sukutyi" (Kotak Oranye dengan wajah jenaka)
+        player = this.physics.add.sprite(100, 600, null);
+        // Membuat visual karakter dengan shapes alternatif gambar
+        let playerBody = this.add.rectangle(0, 0, 40, 50, 0xFF8C00);
+        let eye = this.add.rectangle(10, -10, 8, 8, 0x000000);
+        let mouth = this.add.rectangle(10, 5, 12, 4, 0x000000);
+        player.createGeometry = function() {}; // formalitas
         
-        <div class="upgrades-list">
-            <div class="upgrade-card">
-                <div class="upgrade-info">
-                    <div class="up-name">Sepatu Seluncur Magis</div>
-                    <div class="up-desc">Parkour gurun (+1 Energi/Tap)</div>
-                </div>
-                <button class="up-btn" id="btn-up1" onclick="buyUpgrade(1)">Beli: 15</button>
-            </div>
+        // Satukan komponen visual ke dalam kontainer karakter
+        let playerContainer = this.add.container(100, 650, [playerBody, eye, mouth]);
+        this.physics.add.existing(playerContainer);
+        player = playerContainer;
+        player.body.setCollideWorldBounds(true);
+        player.body.setGravityY(1200);
+
+        // Tabrakan karakter dengan tanah
+        this.physics.add.collider(player, ground);
+
+        // 3. Grup Rintangan (Musuh/Batu)
+        obstacles = this.physics.add.group();
+        this.physics.add.collider(obstacles, ground);
+
+        // Tabrakan pemain dengan rintangan
+        this.physics.add.collider(player, obstacles, hitObstacle, null, this);
+
+        // 4. Skor
+        scoreText = this.add.text(20, 20, 'Skor: 0', { fontSize: '28px', fill: '#fff', stroke: '#000', strokeThickness: 4 });
+
+        // 5. Kontrol Sentuh HP (Tap layar untuk melompat)
+        this.input.on('pointerdown', function () {
+            // Karakter hanya bisa melompat jika sedang menyentuh tanah/berada di bawah
+            if (player.body.touching.down || player.y >= 680) {
+                player.body.setVelocityY(-550);
+            }
             
-            <div class="upgrade-card">
-                <div class="upgrade-info">
-                    <div class="up-name">Sihir Pengendali Pasir</div>
-                    <div class="up-desc">Pedang pasir otomatis (+1 Pasir/detik)</div>
-                </div>
-                <button class="up-btn" id="btn-up2" onclick="buyUpgrade(2)">Beli: 50</button>
-            </div>
-
-            <div class="upgrade-card">
-                <div class="upgrade-info">
-                    <div class="up-name">Penjinak Badai Kuno</div>
-                    <div class="up-desc">Memanggil pusaran badai (+5 Pasir/detik)</div>
-                </div>
-                <button class="up-btn" id="btn-up3" onclick="buyUpgrade(3)">Beli: 250</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let gameState = {
-            sand: 0, sandPerClick: 1, autoSand: 0,
-            upgrades: {
-                click: { level: 0, cost: 15, baseCost: 15, multiplier: 1.6 },
-                auto1: { level: 0, cost: 50, baseCost: 50, multiplier: 1.7 },
-                auto2: { level: 0, cost: 250, baseCost: 250, multiplier: 1.8 }
+            // Restart game jika game over
+            if (isGameOver) {
+                resetGame.call(this);
             }
-        };
+        }, this);
 
-        const sandCore = document.getElementById('sand-core');
-        const sandCountEl = document.getElementById('sand-count');
-        const powerCountEl = document.getElementById('power-count');
-        const autoCountEl = document.getElementById('auto-count');
-        const eventBox = document.getElementById('event-box');
-
-        const loreEvents = [
-            "Badai pasir kecil melintasi reruntuhan kuil kuno Zarek-Tul.",
-            "Kamu mendengar bisikan sayup-sayup dari jiwa kuno di bawah pasir.",
-            "Sebuah mekanisme robot kuno bertenaga sihir terdeteksi di kejauhan.",
-            "Pasir di sekitarmu mulai berputar mengikuti gerakan tanganmu.",
-            "Suku terakhir mengirimkan sinyal terima kasih atas energi yang kau kumpulkan."
-        ];
-
-        function doTap(x, y) {
-            gameState.sand += gameState.sandPerClick;
-            createFloatingText(x, y, `+${gameState.sandPerClick}`);
-            updateUI();
-        }
-
-        sandCore.addEventListener('click', (e) => { doTap(e.clientX, e.clientY); });
-        sandCore.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            doTap(touch.clientX, touch.clientY);
+        // 6. Memunculkan rintangan secara berkala
+        spawnTimer = this.time.addEvent({
+            delay: 1500,
+            callback: spawnObstacle,
+            callbackScope: this,
+            loop: true
         });
+    }
 
-        function createFloatingText(x, y, text) {
-            const span = document.createElement('span');
-            span.classList.add('floating-text');
-            span.innerText = text;
-            if (!x || !y) {
-                const rect = sandCore.getBoundingClientRect();
-                x = rect.left + rect.width / 2; y = rect.top + rect.height / 2;
+    function update() {
+        if (isGameOver) return;
+
+        // Gerakkan rintangan ke kiri menuju pemain
+        obstacles.getChildren().forEach(function(obstacle) {
+            obstacle.body.setVelocityX(-250 - (score * 5)); // Makin lama makin cepat
+            
+            // Hapus rintangan jika lolos dari layar dan tambah skor
+            if (obstacle.x < -50 && !obstacle.passed) {
+                obstacle.passed = true;
+                score += 10;
+                scoreText.setText('Skor: ' + score);
             }
-            span.style.left = `${x - 15}px`; span.style.top = `${y - 20}px`;
-            document.body.appendChild(span);
-            setTimeout(() => span.remove(), 600);
-        }
+        });
+    }
 
-        function buyUpgrade(id) {
-            if (id === 1 && gameState.sand >= gameState.upgrades.click.cost) {
-                gameState.sand -= gameState.upgrades.click.cost;
-                gameState.sandPerClick += 1;
-                gameState.upgrades.click.level++;
-                gameState.upgrades.click.cost = Math.floor(gameState.upgrades.click.baseCost * Math.pow(gameState.upgrades.click.multiplier, gameState.upgrades.click.level));
-                eventBox.innerText = "Kamu meningkatkan teknik Sand-Surfing gurun!";
-            } else if (id === 2 && gameState.sand >= gameState.upgrades.auto1.cost) {
-                gameState.sand -= gameState.upgrades.auto1.cost;
-                gameState.autoSand += 1;
-                gameState.upgrades.auto1.level++;
-                gameState.upgrades.auto1.cost = Math.floor(gameState.upgrades.auto1.baseCost * Math.pow(gameState.upgrades.auto1.multiplier, gameState.upgrades.auto1.level));
-                eventBox.innerText = "Sihir Kinetik otomatis mulai mengumpulkan serpihan pasir.";
-            } else if (id === 3 && gameState.sand >= gameState.upgrades.auto2.cost) {
-                gameState.sand -= gameState.upgrades.auto2.cost;
-                gameState.autoSand += 5;
-                gameState.upgrades.auto2.level++;
-                gameState.upgrades.auto2.cost = Math.floor(gameState.upgrades.auto2.baseCost * Math.pow(gameState.upgrades.auto2.multiplier, gameState.upgrades.auto2.level));
-                eventBox.innerText = "Pusaran Badai Kuno berhasil dijinakkan untuk membantumu!";
-            }
-            updateUI();
-        }
+    function spawnObstacle() {
+        if (isGameOver) return;
 
-        function updateUI() {
-            sandCountEl.innerText = Math.floor(gameState.sand);
-            powerCountEl.innerText = gameState.sandPerClick;
-            autoCountEl.innerText = gameState.autoSand;
+        // Membuat rintangan (Kotak Ungu sebagai "Hantu/Preman" lokal yang absurd)
+        let obsBody = this.add.rectangle(0, 0, 30, 40, 0x8A2BE2);
+        let obsEye = this.add.rectangle(-5, -5, 6, 6, 0xFFFFFF);
+        let obstacle = this.add.container(500, 685, [obsBody, obsEye]);
+        
+        this.physics.add.existing(obstacle);
+        obstacles.add(obstacle);
+        
+        // Atur agar tidak memantul berlebihan
+        obstacle.body.setCollideWorldBounds(false);
+        obstacle.body.setImmovable(true);
+        obstacle.body.allowGravity = false;
+    }
 
-            document.getElementById('btn-up1').innerText = `Beli: ${gameState.upgrades.click.cost}`;
-            document.getElementById('btn-up1').disabled = gameState.sand < gameState.upgrades.click.cost;
-            document.getElementById('btn-up2').innerText = `Beli: ${gameState.upgrades.auto1.cost}`;
-            document.getElementById('btn-up2').disabled = gameState.sand < gameState.upgrades.auto1.cost;
-            document.getElementById('btn-up3').innerText = `Beli: ${gameState.upgrades.auto2.cost}`;
-            document.getElementById('btn-up3').disabled = gameState.sand < gameState.upgrades.auto2.cost;
-        }
+    function hitObstacle(player, obstacle) {
+        this.physics.pause();
+        isGameOver = true;
+        spawnTimer.destroy();
+        
+        // Teks Game Over
+        this.add.text(125, 350, 'GAME OVER', { fontSize: '40px', fill: '#ff0000', fontWeight: 'bold', stroke: '#fff', strokeThickness: 4 });
+        this.add.text(110, 420, 'Ketuk layar untuk main lagi', { fontSize: '18px', fill: '#fff' });
+    }
 
-        setInterval(() => {
-            if (gameState.autoSand > 0) {
-                gameState.sand += gameState.autoSand;
-                updateUI();
-            }
-        }, 1000);
+    function resetGame() {
+        isGameOver = false;
+        score = 0;
+        this.scene.restart();
+    }
+</script>
 
-        setInterval(() => {
-            const randomIndex = Math.floor(Math.random() * loreEvents.length);
-            if (!eventBox.innerText.startsWith("Kamu") && !eventBox.innerText.startsWith("Sihir") && !eventBox.innerText.startsWith("Pusaran")) {
-                eventBox.innerText = loreEvents[randomIndex];
-            }
-        }, 9000);
-
-        updateUI();
-    </script>
 </body>
 </html>
