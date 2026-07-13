@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sukutyi: Sand Clicker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #ff9933, #663300);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+        header {
+            margin-top: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .stats {
+            font-size: 20px;
+            margin-top: 5px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        #game-button {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #ffcc66, #ff9900);
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 -5px 15px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            border: 5px solid #fff;
+            touch-action: manipulation;
+        }
+        #game-button:active {
+            transform: scale(0.92);
+        }
+        .shop-container {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .shop-btn {
+            background: #ff9900;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .shop-btn:disabled {
+            background: #555;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>SUKUTYI</h1>
+        <p style="margin: 5px 0; font-size: 14px; opacity: 0.8;">Kumpulkan Energi Pasir Gurun</p>
+        <div class="stats">⏳ <span id="sand-count">0</span> Pasir</div>
+    </header>
+
+    <!-- Tombol Utama untuk di-tap di HP -->
+    <div id="game-button">⏳</div>
+
+    <div class="shop-container">
+        <div class="shop-item">
+            <div>
+                <div style="font-weight: bold; text-align: left;">Sepatu Seluncur</div>
+                <div style="font-size: 12px; opacity: 0.7; text-align: left;">+1 Pasir per klik</div>
+            </div>
+            <button class="shop-btn" id="upgrade-click" onclick="buyUpgrade()">Beli (Cost: 10)</button>
+        </div>
+        <div style="font-size: 11px; opacity: 0.5;">Sukutyi v1.0 • Bisa dimainkan di browser HP</div>
+    </div>
+
+    <script>
+        let sand = 0;
+        let sandPerClick = 1;
+        let upgradeCost = 10;
+
+        const sandCountEl = document.getElementById('sand-count');
+        const gameBtn = document.getElementById('game-button');
+        const upgradeBtn = document.getElementById('upgrade-click');
+
+        // Efek Klik / Tap di HP
+        gameBtn.addEventListener('click', () => {
+            sand += sandPerClick;
+            updateDisplay();
+        });
+
+        function buyUpgrade() {
+            if (sand >= upgradeCost) {
+                sand -= upgradeCost;
+                sandPerClick += 1;
+                upgradeCost = Math.floor(upgradeCost * 1.8);
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            sandCountEl.innerText = sand;
+            upgradeBtn.innerText = `Beli (Cost: ${upgradeCost})`;
+            
+            // Cek apakah uang cukup untuk upgrade
+            if (sand >= upgradeCost) {
+                upgradeBtn.disabled = false;
+            } else {
+                upgradeBtn.disabled = true;
+            }
+        }
+
+        // Jalankan fungsi pertama kali
+        updateDisplay();
+    </script>
+</body>
+</html>
