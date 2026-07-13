@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sukutyi Adventure - Lebih Santai</title>
+    <title>Sukutyi - Versi Super Mudah</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         body {
@@ -42,7 +42,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 900 }, // DIKURANGI: Biar jatuhnya lebih lambat dan melayang
+                gravity: { y: 500 }, // SUPER RINGAN: Jatuhnya lambat banget seperti astronot
                 debug: false
             }
         },
@@ -82,8 +82,8 @@
         player = playerContainer;
         player.body.setCollideWorldBounds(true);
         
-        // Memperkecil hitbox pemain agar tidak gampang kesenggol musuh
-        player.body.setSize(30, 45); 
+        // HITBOX KECIL: Karakter dibuat kebal, hanya kena kalau benar-benar menabrak tengah musuh
+        player.body.setSize(15, 20); 
 
         this.physics.add.collider(player, ground);
 
@@ -91,7 +91,6 @@
         obstacles = this.physics.add.group();
         this.physics.add.collider(obstacles, ground);
 
-        // Deteksi tabrakan
         this.physics.add.overlap(player, obstacles, hitObstacle, null, this);
 
         // Skor
@@ -99,9 +98,8 @@
 
         // Kontrol Sentuh HP (Lompat)
         this.input.on('pointerdown', function () {
-            // Pemain bisa melompat jika menyentuh tanah
-            if (player.body.touching.down || player.y >= 680) {
-                player.body.setVelocityY(-480); // DISESUAIKAN: Lompatan lebih pas dengan gravitasi baru
+            if (player.body.touching.down || player.y >= 650) {
+                player.body.setVelocityY(-350); // Lompatan pas untuk melayang di gravitasi rendah
             }
             
             if (isGameOver) {
@@ -111,7 +109,7 @@
 
         // Memunculkan rintangan secara berkala
         spawnTimer = this.time.addEvent({
-            delay: 2200, // DIUTAK-ATIK: Jeda antar musuh lebih lama (2.2 detik), tidak beruntun
+            delay: 3500, // LAMA BANGET: Musuh baru muncul setelah 3.5 detik, senggang banget!
             callback: spawnObstacle,
             callbackScope: this,
             loop: true
@@ -122,8 +120,8 @@
         if (isGameOver) return;
 
         obstacles.getChildren().forEach(function(obstacle) {
-            // DIKURANGI: Kecepatan awal musuh jadi -180 (sebelumnya -250), naiknya skor juga tidak bikin secepat dulu
-            obstacle.body.setVelocityX(-180 - (score * 2)); 
+            // SANGAT LAMBAT: Musuh jalan pelan-pelan ke kiri (-100) dan kecepatannya tidak bertambah ekstrem
+            obstacle.body.setVelocityX(-110); 
             
             if (obstacle.x < -50 && !obstacle.passed) {
                 obstacle.passed = true;
@@ -136,15 +134,12 @@
     function spawnObstacle() {
         if (isGameOver) return;
 
-        // Musuh (Kotak Ungu)
-        let obsBody = this.add.rectangle(0, 0, 30, 40, 0x8A2BE2);
-        let obsEye = this.add.rectangle(-5, -5, 6, 6, 0xFFFFFF);
-        let obstacle = this.add.container(500, 685, [obsBody, obsEye]);
+        // Musuh (Kotak Kecil Ungu)
+        let obsBody = this.add.rectangle(0, 0, 20, 30, 0x8A2BE2); // Ukuran musuh diperkecil
+        let obstacle = this.add.container(500, 690, [obsBody]);
         
         this.physics.add.existing(obstacle);
-        
-        // Memperkecil hitbox musuh agar adil bagi pemain
-        obstacle.body.setSize(20, 35);
+        obstacle.body.setSize(10, 15); // Hitbox musuh diperkecil juga
         
         obstacles.add(obstacle);
         
