@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Space Catcher - Full Game</title>
+    <title>Space Catcher - Full Game with Logos</title>
     <style>
         body {
             background: linear-gradient(135deg, #0b0b16, #1a1a3a);
@@ -95,9 +95,18 @@
         let particles = [];
 
         // =========================================================================
-        // ASET KARAKTER & LOGO (TERTULIS LANGSUNG DALAM KODE / INLINE SVG)
+        // PENGATURAN LOGO DI POJOK KANAN ATAS (Membaca file lokal JPEG kamu)
         // =========================================================================
-        
+        const logo1 = new Image();
+        logo1.src = 'fto1.jpeg';
+
+        const logo2 = new Image();
+        logo2.src = 'fto2.jpeg';
+
+        const logo3 = new Image();
+        logo3.src = 'fto3.jpeg';
+        // =========================================================================
+
         // Karakter 1: Astronot Penangkap (Player)
         const imgPlayer = new Image();
         imgPlayer.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='35' r='20' fill='%23ffffff'/><rect x='42' y='27' width='16' height='12' rx='3' fill='%2300ccff'/><rect x='30' y='55' width='40' height='35' rx='10' fill='%23dddddd'/><circle cx='38' cy='70' r='5' fill='%23ff0055'/><circle cx='62' cy='70' r='5' fill='%2300ffaa'/></svg>";
@@ -109,8 +118,6 @@
         // Karakter 3: Bintang Jatuh Bersinar (Target)
         const imgTarget = new Image();
         imgTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='30' cy='30' r='22' fill='%23ff0055'/><circle cx='30' cy='30' r='15' fill='%23ff77aa'/><polygon points='30,12 34,22 45,22 36,28 40,38 30,32 20,38 24,28 15,22 26,22' fill='%23ffffff'/></svg>";
-
-        // =========================================================================
 
         let player = {
             x: canvas.width / 2 - 40,
@@ -173,10 +180,41 @@
             player.x = mouseX - player.width / 2;
         });
 
+        // Fungsi khusus untuk menggambar deretan logo di pojok kanan atas
+        function drawLogos() {
+            const size = 45; // Ukuran logo kotak 45x45 px
+            const yPos = 15; // Jarak dari atas canvas
+            const spacing = 10; // Jarak antar logo
+
+            // Koordinat X masing-masing logo (dari kanan ke kiri)
+            const x3 = canvas.width - size - 15;
+            const x2 = x3 - size - spacing;
+            const x1 = x2 - size - spacing;
+
+            // Gambar bingkai neon tipis di sekitar logo agar rapi
+            ctx.strokeStyle = '#00ffcc';
+            ctx.lineWidth = 1;
+
+            // Logo 1
+            ctx.drawImage(logo1, x1, yPos, size, size);
+            ctx.strokeRect(x1, yPos, size, size);
+
+            // Logo 2
+            ctx.drawImage(logo2, x2, yPos, size, size);
+            ctx.strokeRect(x2, yPos, size, size);
+
+            // Logo 3
+            ctx.drawImage(logo3, x3, yPos, size, size);
+            ctx.strokeRect(x3, yPos, size, size);
+        }
+
         function updateGame() {
             if (!gameActive) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Menggambar logo di pojok kanan atas di setiap frame game
+            drawLogos();
 
             // Pergerakan Keyboard
             if (player.movingLeft && player.x > 0) player.x -= player.speed;
@@ -212,7 +250,7 @@
                 
                 target.y = -60;
                 target.x = Math.random() * (canvas.width - target.width);
-                targetSpeed += 0.3; // Semakin tinggi skor, objek jatuh semakin cepat!
+                targetSpeed += 0.3;
             }
 
             // Jika Target Lolos Jatuh ke Bawah
@@ -263,9 +301,14 @@
             startBtn.style.display = "block";
         }
 
-        // Tampilan Awal
+        // Menggambar latar belakang awal dan mencoba memuat logo saat pertama kali dibuka
         ctx.fillStyle = "#0d0d1f";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const renderInitial = () => {
+            drawLogos();
+        };
+        logo1.onload = logo2.onload = logo3.onload = renderInitial;
     </script>
 </body>
 </html>
