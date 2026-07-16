@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sukutyi - Versi Super Mudah (3 Foto Sukses)</title>
+    <title>Sukutyi - Versi Super Mudah (3 Foto Fix)</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         body {
@@ -42,7 +42,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 500 }, // SUPER RINGAN
+                gravity: { y: 500 },
                 debug: false
             }
         },
@@ -62,10 +62,16 @@
     let spawnTimer;
 
     function preload() {
-        // --- MEMUAT 3 GAMBAR LOGO SESUAI FILE ANDA ---
-        this.load.image('logo1', 'fto1.jpeg'); // SMKN 1 Sanden
-        this.load.image('logo2', 'fto2.jpeg'); // RPL
-        this.load.image('logo3', 'fto3.jpeg'); // IC GRUP
+        // --- MEMUAT 3 GAMBAR MENGGUNAKAN NAMA ASLI WHATSAPP AGAR PASTI COCOK ---
+        
+        // 1. Logo SMKN 1 Sanden
+        this.load.image('logo1', 'WhatsApp Image 2026-07-16 at 7.56.03 AM.jpeg'); 
+        
+        // 2. Logo RPL (Yang sebelumnya silang hijau)
+        this.load.image('logo2', 'WhatsApp Image 2026-07-16 at 8.01.37 AM.jpeg'); 
+        
+        // 3. Logo IC GRUP
+        this.load.image('logo3', 'WhatsApp Image 2026-07-16 at 7.57.37 AM.jpeg'); 
     }
 
     function create() {
@@ -78,18 +84,18 @@
         ground.add(groundLine);
 
         // --- MENAMPILKAN 3 GAMBAR BERJEJER DI POJOK KANAN ATAS ---
-        let logoSize = 60; // Ukuran kotak logo pas
-        let logoYPos = 60; // Posisi tinggi dari atas layar
+        let logoSize = 60; 
+        let logoYPos = 60; 
 
-        // Gambar 1: Paling kanan (SMKN 1 Sanden)
+        // Gambar 1: Paling kanan
         let img1 = this.add.image(380, logoYPos, 'logo1');
         img1.setDisplaySize(logoSize, logoSize).setDepth(10);
 
-        // Gambar 2: Di tengah (RPL)
+        // Gambar 2: Di tengah
         let img2 = this.add.image(315, logoYPos, 'logo2');
         img2.setDisplaySize(logoSize, logoSize).setDepth(10);
 
-        // Gambar 3: Paling kiri (IC GRUP)
+        // Gambar 3: Paling kiri
         let img3 = this.add.image(250, logoYPos, 'logo3');
         img3.setDisplaySize(logoSize, logoSize).setDepth(10);
 
@@ -104,7 +110,6 @@
         player = playerContainer;
         player.body.setCollideWorldBounds(true);
         
-        // HITBOX KECIL
         player.body.setSize(15, 20); 
 
         this.physics.add.collider(player, ground);
@@ -156,7 +161,6 @@
     function spawnObstacle() {
         if (isGameOver) return;
 
-        // Musuh (Kotak Kecil Ungu)
         let obsBody = this.add.rectangle(0, 0, 20, 30, 0x8A2BE2);
         let obstacle = this.add.container(500, 690, [obsBody]);
         
