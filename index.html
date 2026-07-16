@@ -2,191 +2,165 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sukutyi - Kode Foto Rapi</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Ular Jadul dengan Foto</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             background-color: #222;
-            overflow: hidden;
+            color: white;
+            font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
-            font-family: sans-serif;
+            margin: 0;
         }
-        #game-container {
-            width: 100%;
-            height: 100%;
-            max-width: 450px;
-            max-height: 800px;
+        h1 {
+            margin-bottom: 10px;
+        }
+        canvas {
+            border: 4px solid #fff;
+            background-color: #111;
+        }
+        .score {
+            font-size: 24px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
-<div id="game-container"></div>
+    <h1>Game Ular (Snake Picture Edition)</h1>
+    <div class="score">Skor: <span id="scoreVal">0</span></div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
 
-<script>
-    const config = {
-        type: Phaser.AUTO,
-        width: 450,
-        height: 800,
-        parent: 'game-container',
-        scale: {
-            mode: Phaser.Scale.FIT,
-            autoCenter: Phaser.Scale.CENTER_BOTH
-        },
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 500 },
-                debug: false
-            }
-        },
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("scoreVal");
+
+        const grid = 20;
+        let count = 0;
+        let score = 0;
+
+        // --- LOADING GAMBAR/FOTO ---
+        const imgKepala = new Image();
+        imgKepala.src = 'URL_FOTO_1'; // <- Ganti dengan URL/Link Foto 1 Kamu
+
+        const imgBadan = new Image();
+        imgBadan.src = 'URL_FOTO_2'; // <- Ganti dengan URL/Link Foto 2 Kamu
+
+        const imgApel = new Image();
+        imgApel.src = 'URL_FOTO_3'; // <- Ganti dengan URL/Link Foto 3 Kamu
+        // ----------------------------
+
+        let snake = {
+            x: 160,
+            y: 160,
+            dx: grid,
+            dy: 0,
+            cells: [],
+            maxCells: 4
+        };
+
+        let apple = {
+            x: 320,
+            y: 320
+        };
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
         }
-    };
 
-    const game = new Phaser.Game(config);
-    let player;
-    let obstacles;
-    let score = 0;
-    let scoreText;
-    let isGameOver = false;
-    let spawnTimer;
+        function loop() {
+            requestAnimationFrame(loop);
 
-    function preload() {
-        // Di sini nama panggilannya diubah menjadi 'fto1', 'fto2', 'fto3'
-        // Tapi file yang dibaca tetap file asli WhatsApp Anda agar tidak silang hijau lagi
-        this.load.image('fto1', 'WhatsApp Image 2026-07-16 at 7.56.03 AM.jpeg?v=4'); 
-        this.load.image('fto2', 'WhatsApp Image 2026-07-16 at 8.01.37 AM.jpeg?v=4'); 
-        this.load.image('fto3', 'WhatsApp Image 2026-07-16 at 7.57.37 AM.jpeg?v=4'); 
-    }
-
-    function create() {
-        // Background & Tanah
-        this.add.rectangle(225, 400, 450, 800, 0x87CEEB); 
-        this.add.rectangle(225, 750, 450, 100, 0x4d2922); 
-        
-        let ground = this.physics.add.staticGroup();
-        let groundLine = this.add.rectangle(225, 710, 450, 20, 0x228B22);
-        ground.add(groundLine);
-
-        // --- MENAMPILKAN 3 GAMBAR BERJEJER DI POJOK KANAN ATAS ---
-        let logoSize = 60; 
-        let logoYPos = 60; 
-
-        // Memanggil gambar dengan nama sebutan baru ('fto1', 'fto2', 'fto3')
-        // Gambar 1 (SMKN 1 Sanden) - Paling kanan
-        let img1 = this.add.image(380, logoYPos, 'fto1');
-        img1.setDisplaySize(logoSize, logoSize).setDepth(10);
-
-        // Gambar 2 (RPL) - Di tengah
-        let img2 = this.add.image(315, logoYPos, 'fto2');
-        img2.setDisplaySize(logoSize, logoSize).setDepth(10);
-
-        // Gambar 3 (IC GRUP) - Paling kiri
-        let img3 = this.add.image(250, logoYPos, 'fto3');
-        img3.setDisplaySize(logoSize, logoSize).setDepth(10);
-
-
-        // Karakter Utama: "Sukutyi"
-        let playerBody = this.add.rectangle(0, 0, 40, 50, 0xFF8C00);
-        let eye = this.add.rectangle(10, -10, 8, 8, 0x000000);
-        let mouth = this.add.rectangle(10, 5, 12, 4, 0x000000);
-        
-        let playerContainer = this.add.container(100, 650, [playerBody, eye, mouth]);
-        this.physics.add.existing(playerContainer);
-        player = playerContainer;
-        player.body.setCollideWorldBounds(true);
-        
-        player.body.setSize(15, 20); 
-
-        this.physics.add.collider(player, ground);
-
-        // Grup Rintangan
-        obstacles = this.physics.add.group();
-        this.physics.add.collider(obstacles, ground);
-
-        this.physics.add.overlap(player, obstacles, hitObstacle, null, this);
-
-        // Skor
-        scoreText = this.add.text(20, 20, 'Skor: 0', { fontSize: '28px', fill: '#fff', stroke: '#000', strokeThickness: 4 });
-        scoreText.setDepth(10); 
-
-        // Kontrol Sentuh HP (Lompat)
-        this.input.on('pointerdown', function () {
-            if (player.body.touching.down || player.y >= 650) {
-                player.body.setVelocityY(-350);
+            if (++count < 6) {
+                return;
             }
+            count = 0;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Gerakkan ular
+            snake.x += snake.dx;
+            snake.y += snake.dy;
+
+            if (snake.x < 0) snake.x = canvas.width - grid;
+            else if (snake.x >= canvas.width) snake.x = 0;
             
-            if (isGameOver) {
-                resetGame.call(this);
+            if (snake.y < 0) snake.y = canvas.height - grid;
+            else if (snake.y >= canvas.height) snake.y = 0;
+
+            snake.cells.unshift({x: snake.x, y: snake.y});
+
+            if (snake.cells.length > snake.maxCells) {
+                snake.cells.pop();
             }
-        }, this);
 
-        // Memunculkan rintangan secara berkala
-        spawnTimer = this.time.addEvent({
-            delay: 3500,
-            callback: spawnObstacle,
-            callbackScope: this,
-            loop: true
-        });
-    }
+            // --- GAMBAR APEL (Menggunakan Foto 3) ---
+            ctx.drawImage(imgApel, apple.x, apple.y, grid, grid);
 
-    function update() {
-        if (isGameOver) return;
+            // --- GAMBAR ULAR ---
+            snake.cells.forEach(function(cell, index) {
+                
+                if (index === 0) {
+                    // Jika index 0, ini adalah KEPALA (Menggunakan Foto 1)
+                    ctx.drawImage(imgKepala, cell.x, cell.y, grid, grid);
+                } else {
+                    // Sisanya adalah BADAN (Menggunakan Foto 2)
+                    ctx.drawImage(imgBadan, cell.x, cell.y, grid, grid);
+                }
 
-        obstacles.getChildren().forEach(function(obstacle) {
-            obstacle.body.setVelocityX(-110); 
-            
-            if (obstacle.x < -50 && !obstacle.passed) {
-                obstacle.passed = true;
-                score += 10;
-                scoreText.setText('Skor: ' + score);
+                // Ular memakan apel
+                if (cell.x === apple.x && cell.y === apple.y) {
+                    snake.maxCells++;
+                    score += 10;
+                    scoreElement.textContent = score;
+
+                    apple.x = getRandomInt(0, 20) * grid;
+                    apple.y = getRandomInt(0, 20) * grid;
+                }
+
+                // Cek Game Over
+                for (let i = index + 1; i < snake.cells.length; i++) {
+                    if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+                        snake.x = 160;
+                        snake.y = 160;
+                        snake.cells = [];
+                        snake.maxCells = 4;
+                        snake.dx = grid;
+                        snake.dy = 0;
+                        score = 0;
+                        scoreElement.textContent = score;
+                        apple.x = getRandomInt(0, 20) * grid;
+                        apple.y = getRandomInt(0, 20) * grid;
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' && snake.dx === 0) {
+                snake.dx = -grid;
+                snake.dy = 0;
+            }
+            else if (e.key === 'ArrowUp' && snake.dy === 0) {
+                snake.dy = -grid;
+                snake.dx = 0;
+            }
+            else if (e.key === 'ArrowRight' && snake.dx === 0) {
+                snake.dx = grid;
+                snake.dy = 0;
+            }
+            else if (e.key === 'ArrowDown' && snake.dy === 0) {
+                snake.dy = grid;
+                snake.dx = 0;
             }
         });
-    }
 
-    function spawnObstacle() {
-        if (isGameOver) return;
-
-        let obsBody = this.add.rectangle(0, 0, 20, 30, 0x8A2BE2);
-        let obstacle = this.add.container(500, 690, [obsBody]);
-        
-        this.physics.add.existing(obstacle);
-        obstacle.body.setSize(10, 15);
-        
-        obstacles.add(obstacle);
-        
-        obstacle.body.setCollideWorldBounds(false);
-        obstacle.body.setImmovable(true);
-        obstacle.body.allowGravity = false;
-    }
-
-    function hitObstacle(player, obstacle) {
-        this.physics.pause();
-        isGameOver = true;
-        spawnTimer.destroy();
-        
-        let text1 = this.add.text(125, 350, 'GAME OVER', { fontSize: '40px', fill: '#ff0000', fontWeight: 'bold', stroke: '#fff', strokeThickness: 4 });
-        let text2 = this.add.text(110, 420, 'Ketuk layar untuk main lagi', { fontSize: '18px', fill: '#fff' });
-        text1.setDepth(10);
-        text2.setDepth(10);
-    }
-
-    function resetGame() {
-        isGameOver = false;
-        score = 0;
-        this.scene.restart();
-    }
-</script>
-
+        requestAnimationFrame(loop);
+    </script>
 </body>
 </html>
