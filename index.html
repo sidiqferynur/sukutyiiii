@@ -1,166 +1,280 @@
+Siap! Kalau kamu ingin menggunakan file lokal dengan format **JPEG (`.jpg` atau `.jpeg`)**, ini kodenya yang sudah bersih.
+
+Saya sudah siapkan nama file gambar di dalam kode menjadi `foto1.jpg`, `foto2.jpg`, dan `foto3.jpg`.
+
+### Cara Pakai:
+
+1. Pastikan 3 file foto kamu di komputer diubah namanya menjadi **`foto1.jpg`**, **`foto2.jpg`**, dan **`foto3.jpg`**.
+2. Taruh ketiga file foto tersebut di dalam **folder yang sama** dengan file HTML game ini.
+
+---
+
+### Kode Game (`game_lokal.html`):
+
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Ular Jadul dengan Foto</title>
+    <title>Fruit Catcher Local Image</title>
     <style>
         body {
-            background-color: #222;
+            background: linear-gradient(135deg, #1e1e2f, #0f0f1a);
             color: white;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
         }
         h1 {
-            margin-bottom: 10px;
+            margin: 0 0 5px 0;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+            color: #00ffcc;
+        }
+        .score-board {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        #scoreVal {
+            color: #ff007f;
+            text-shadow: 0 0 5px rgba(255, 0, 127, 0.5);
+        }
+        .canvas-container {
+            position: relative;
         }
         canvas {
-            border: 4px solid #fff;
-            background-color: #111;
+            border: 3px solid #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.3);
+            background-color: #141423;
+            border-radius: 8px;
         }
-        .score {
-            font-size: 24px;
-            margin-bottom: 20px;
+        .btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ffcc, #0077ff);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4);
+            transition: all 0.2s ease;
+        }
+        .btn:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 7px 20px rgba(0, 255, 204, 0.6);
+        }
+        .instruction {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
         }
     </style>
 </head>
 <body>
 
-    <h1>Game Ular (Snake Picture Edition)</h1>
-    <div class="score">Skor: <span id="scoreVal">0</span></div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <h1>Catch The Target!</h1>
+    <div class="score-board">SKOR: <span id="scoreVal">0</span> | NYAWA: <span id="livesVal">3</span></div>
+    
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="450" height="550"></canvas>
+        <button id="startBtn" class="btn" onclick="startGame()">MULAI GAME</button>
+    </div>
+
+    <div class="instruction">Gunakan <b>Mouse</b> atau tombol <b>Panah Kiri & Kanan</b> untuk bergerak.</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("scoreVal");
+        const livesElement = document.getElementById("livesVal");
+        const startBtn = document.getElementById("startBtn");
 
-        const grid = 20;
-        let count = 0;
         let score = 0;
+        let lives = 3;
+        let gameActive = false;
+        let targetSpeed = 4;
+        let particles = [];
 
-        // --- LOADING GAMBAR/FOTO ---
-        const imgKepala = new Image();
-        imgKepala.src = 'URL_FOTO_1'; // <- Ganti dengan URL/Link Foto 1 Kamu
+        // =========================================================================
+        // PENGATURAN FILE GAMBAR JPEG LOKAL Kamu
+        // =========================================================================
+        const imgPlayer = new Image();
+        imgPlayer.src = 'fto1.jpeg'; // <- Karakter Penangkap bawah
 
-        const imgBadan = new Image();
-        imgBadan.src = 'URL_FOTO_2'; // <- Ganti dengan URL/Link Foto 2 Kamu
+        const imgParticle = new Image();
+        imgParticle.src = 'fto2.jpeg'; // <- Serpihan ledakan skor
 
-        const imgApel = new Image();
-        imgApel.src = 'URL_FOTO_3'; // <- Ganti dengan URL/Link Foto 3 Kamu
-        // ----------------------------
+        const imgTarget = new Image();
+        imgTarget.src = 'fto3.jpeg'; // <- Objek jatuh dari atas
+        // =========================================================================
 
-        let snake = {
-            x: 160,
-            y: 160,
-            dx: grid,
-            dy: 0,
-            cells: [],
-            maxCells: 4
+        let player = {
+            x: canvas.width / 2 - 35,
+            y: canvas.height - 90,
+            width: 75,
+            height: 75,
+            speed: 8,
+            movingLeft: false,
+            movingRight: false
         };
 
-        let apple = {
-            x: 320,
-            y: 320
+        let target = {
+            x: Math.random() * (canvas.width - 50),
+            y: -60,
+            width: 50,
+            height: 50
         };
 
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min)) + min;
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 20 + 15;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * 6 - 3;
+                this.alpha = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= 0.03;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.drawImage(imgParticle, this.x, this.y, this.size, this.size);
+                ctx.restore();
+            }
         }
 
-        function loop() {
-            requestAnimationFrame(loop);
-
-            if (++count < 6) {
-                return;
+        function createExplosion(x, y) {
+            for (let i = 0; i < 8; i++) {
+                particles.push(new Particle(x, y));
             }
-            count = 0;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') player.movingLeft = true;
+            if (e.key === 'ArrowRight') player.movingRight = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') player.movingLeft = false;
+            if (e.key === 'ArrowRight') player.movingRight = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const root = document.documentElement;
+            const mouseX = e.clientX - rect.left - root.scrollLeft;
+            player.x = mouseX - player.width / 2;
+        });
+
+        function updateGame() {
+            if (!gameActive) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Gerakkan ular
-            snake.x += snake.dx;
-            snake.y += snake.dy;
+            if (player.movingLeft && player.x > 0) player.x -= player.speed;
+            if (player.movingRight && player.x < canvas.width - player.width) player.x += player.speed;
 
-            if (snake.x < 0) snake.x = canvas.width - grid;
-            else if (snake.x >= canvas.width) snake.x = 0;
-            
-            if (snake.y < 0) snake.y = canvas.height - grid;
-            else if (snake.y >= canvas.height) snake.y = 0;
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
 
-            snake.cells.unshift({x: snake.x, y: snake.y});
+            // Gambar Player
+            ctx.drawImage(imgPlayer, player.x, player.y, player.width, player.height);
 
-            if (snake.cells.length > snake.maxCells) {
-                snake.cells.pop();
+            // Gambar Target Jatuh
+            target.y += targetSpeed;
+            ctx.drawImage(imgTarget, target.x, target.y, target.width, target.height);
+
+            // Update Partikel Efek
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+                if (particle.alpha <= 0) particles.splice(index, 1);
+            });
+
+            // Deteksi Tabrakan
+            if (target.y + target.height >= player.y &&
+                target.x + target.width >= player.x &&
+                target.x <= player.x + player.width &&
+                target.y <= player.y + player.height) {
+                
+                createExplosion(target.x + target.width/2, target.y + target.height/2);
+                score += 10;
+                scoreElement.textContent = score;
+                
+                target.y = -60;
+                target.x = Math.random() * (canvas.width - target.width);
+                targetSpeed += 0.25; 
             }
 
-            // --- GAMBAR APEL (Menggunakan Foto 3) ---
-            ctx.drawImage(imgApel, apple.x, apple.y, grid, grid);
+            // Jika Lolos Jatuh Ke Bawah
+            if (target.y > canvas.height) {
+                lives--;
+                livesElement.textContent = lives;
+                target.y = -60;
+                target.x = Math.random() * (canvas.width - target.width);
 
-            // --- GAMBAR ULAR ---
-            snake.cells.forEach(function(cell, index) {
-                
-                if (index === 0) {
-                    // Jika index 0, ini adalah KEPALA (Menggunakan Foto 1)
-                    ctx.drawImage(imgKepala, cell.x, cell.y, grid, grid);
-                } else {
-                    // Sisanya adalah BADAN (Menggunakan Foto 2)
-                    ctx.drawImage(imgBadan, cell.x, cell.y, grid, grid);
+                if (lives <= 0) {
+                    gameOver();
                 }
+            }
 
-                // Ular memakan apel
-                if (cell.x === apple.x && cell.y === apple.y) {
-                    snake.maxCells++;
-                    score += 10;
-                    scoreElement.textContent = score;
-
-                    apple.x = getRandomInt(0, 20) * grid;
-                    apple.y = getRandomInt(0, 20) * grid;
-                }
-
-                // Cek Game Over
-                for (let i = index + 1; i < snake.cells.length; i++) {
-                    if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-                        snake.x = 160;
-                        snake.y = 160;
-                        snake.cells = [];
-                        snake.maxCells = 4;
-                        snake.dx = grid;
-                        snake.dy = 0;
-                        score = 0;
-                        scoreElement.textContent = score;
-                        apple.x = getRandomInt(0, 20) * grid;
-                        apple.y = getRandomInt(0, 20) * grid;
-                    }
-                }
-            });
+            requestAnimationFrame(updateGame);
         }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft' && snake.dx === 0) {
-                snake.dx = -grid;
-                snake.dy = 0;
-            }
-            else if (e.key === 'ArrowUp' && snake.dy === 0) {
-                snake.dy = -grid;
-                snake.dx = 0;
-            }
-            else if (e.key === 'ArrowRight' && snake.dx === 0) {
-                snake.dx = grid;
-                snake.dy = 0;
-            }
-            else if (e.key === 'ArrowDown' && snake.dy === 0) {
-                snake.dy = grid;
-                snake.dx = 0;
-            }
-        });
+        function startGame() {
+            score = 0;
+            lives = 3;
+            targetSpeed = 4;
+            particles = [];
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+            target.y = -60;
+            target.x = Math.random() * (canvas.width - target.width);
+            
+            startBtn.style.display = "none";
+            gameActive = true;
+            updateGame();
+        }
 
-        requestAnimationFrame(loop);
+        function gameOver() {
+            gameActive = false;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#ff007f";
+            ctx.font = "bold 32px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 40);
+            
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText("Total Skor: " + score, canvas.width / 2, canvas.height / 2 + 10);
+
+            startBtn.textContent = "MAIN LAGI";
+            startBtn.style.display = "block";
+        }
+
+        ctx.fillStyle = "#141423";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     </script>
 </body>
 </html>
+
+```
