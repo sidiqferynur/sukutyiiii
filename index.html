@@ -1,13 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fruit Catcher Local Image</title>
+    <title>Space Catcher - Full Game</title>
     <style>
         body {
-            background: linear-gradient(135deg, #1e1e2f, #0f0f1a);
+            background: linear-gradient(135deg, #0b0b16, #1a1a3a);
             color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -21,7 +20,7 @@
         h1 {
             margin: 0 0 5px 0;
             font-size: 2.5rem;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.8);
             color: #00ffcc;
         }
         .score-board {
@@ -40,7 +39,7 @@
         canvas {
             border: 3px solid #00ffcc;
             box-shadow: 0 0 25px rgba(0, 255, 204, 0.3);
-            background-color: #141423;
+            background-color: #0d0d1f;
             border-radius: 8px;
         }
         .btn {
@@ -72,7 +71,7 @@
 </head>
 <body>
 
-    <h1>Catch The Target!</h1>
+    <h1>Space Catcher</h1>
     <div class="score-board">SKOR: <span id="scoreVal">0</span> | NYAWA: <span id="livesVal">3</span></div>
     
     <div class="canvas-container">
@@ -80,7 +79,7 @@
         <button id="startBtn" class="btn" onclick="startGame()">MULAI GAME</button>
     </div>
 
-    <div class="instruction">Gunakan <b>Mouse</b> atau tombol <b>Panah Kiri & Kanan</b> untuk bergerak.</div>
+    <div class="instruction">Gerakkan <b>Mouse</b> atau gunakan tombol <b>Panah Kiri & Kanan</b> untuk bermain.</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -96,24 +95,29 @@
         let particles = [];
 
         // =========================================================================
-        // PENGATURAN FILE GAMBAR JPEG LOKAL Kamu
+        // ASET KARAKTER & LOGO (TERTULIS LANGSUNG DALAM KODE / INLINE SVG)
         // =========================================================================
+        
+        // Karakter 1: Astronot Penangkap (Player)
         const imgPlayer = new Image();
-        imgPlayer.src = 'fto1.jpeg'; // <- Karakter Penangkap bawah
+        imgPlayer.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='35' r='20' fill='%23ffffff'/><rect x='42' y='27' width='16' height='12' rx='3' fill='%2300ccff'/><rect x='30' y='55' width='40' height='35' rx='10' fill='%23dddddd'/><circle cx='38' cy='70' r='5' fill='%23ff0055'/><circle cx='62' cy='70' r='5' fill='%2300ffaa'/></svg>";
 
+        // Karakter 2: Serpihan Bintang Efek Ledakan (Particle)
         const imgParticle = new Image();
-        imgParticle.src = 'fto2.jpeg'; // <- Serpihan ledakan skor
+        imgParticle.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'><polygon points='25,1 32,18 50,20 36,32 40,50 25,40 10,50 14,32 0,20 18,18' fill='%23ffcc00'/></svg>";
 
+        // Karakter 3: Bintang Jatuh Bersinar (Target)
         const imgTarget = new Image();
-        imgTarget.src = 'fto3.jpeg'; // <- Objek jatuh dari atas
+        imgTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'><circle cx='30' cy='30' r='22' fill='%23ff0055'/><circle cx='30' cy='30' r='15' fill='%23ff77aa'/><polygon points='30,12 34,22 45,22 36,28 40,38 30,32 20,38 24,28 15,22 26,22' fill='%23ffffff'/></svg>";
+
         // =========================================================================
 
         let player = {
-            x: canvas.width / 2 - 35,
-            y: canvas.height - 90,
-            width: 75,
-            height: 75,
-            speed: 8,
+            x: canvas.width / 2 - 40,
+            y: canvas.height - 95,
+            width: 80,
+            height: 80,
+            speed: 9,
             movingLeft: false,
             movingRight: false
         };
@@ -129,7 +133,7 @@
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 20 + 15;
+                this.size = Math.random() * 15 + 10;
                 this.speedX = Math.random() * 6 - 3;
                 this.speedY = Math.random() * 6 - 3;
                 this.alpha = 1;
@@ -137,7 +141,7 @@
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                this.alpha -= 0.03;
+                this.alpha -= 0.04;
             }
             draw() {
                 ctx.save();
@@ -148,7 +152,7 @@
         }
 
         function createExplosion(x, y) {
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 10; i++) {
                 particles.push(new Particle(x, y));
             }
         }
@@ -165,8 +169,7 @@
 
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
-            const root = document.documentElement;
-            const mouseX = e.clientX - rect.left - root.scrollLeft;
+            const mouseX = e.clientX - rect.left;
             player.x = mouseX - player.width / 2;
         });
 
@@ -175,20 +178,22 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Pergerakan Keyboard
             if (player.movingLeft && player.x > 0) player.x -= player.speed;
             if (player.movingRight && player.x < canvas.width - player.width) player.x += player.speed;
 
+            // Batas Player
             if (player.x < 0) player.x = 0;
             if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
 
-            // Gambar Player
+            // Gambar Player (Astronot)
             ctx.drawImage(imgPlayer, player.x, player.y, player.width, player.height);
 
-            // Gambar Target Jatuh
+            // Gambar & Gerakan Target (Bintang Neon)
             target.y += targetSpeed;
             ctx.drawImage(imgTarget, target.x, target.y, target.width, target.height);
 
-            // Update Partikel Efek
+            // Animasi Partikel Ledakan
             particles.forEach((particle, index) => {
                 particle.update();
                 particle.draw();
@@ -196,21 +201,21 @@
             });
 
             // Deteksi Tabrakan
-            if (target.y + target.height >= player.y &&
-                target.x + target.width >= player.x &&
-                target.x <= player.x + player.width &&
+            if (target.y + target.height >= player.y + 10 &&
+                target.x + target.width >= player.x + 10 &&
+                target.x <= player.x + player.width - 10 &&
                 target.y <= player.y + player.height) {
                 
-                createExplosion(target.x + target.width/2, target.y + target.height/2);
+                createExplosion(target.x + target.width / 2, target.y + target.height / 2);
                 score += 10;
                 scoreElement.textContent = score;
                 
                 target.y = -60;
                 target.x = Math.random() * (canvas.width - target.width);
-                targetSpeed += 0.25; 
+                targetSpeed += 0.3; // Semakin tinggi skor, objek jatuh semakin cepat!
             }
 
-            // Jika Lolos Jatuh Ke Bawah
+            // Jika Target Lolos Jatuh ke Bawah
             if (target.y > canvas.height) {
                 lives--;
                 livesElement.textContent = lives;
@@ -242,26 +247,25 @@
 
         function gameOver() {
             gameActive = false;
-            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillStyle = "rgba(11, 11, 22, 0.85)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             ctx.fillStyle = "#ff007f";
-            ctx.font = "bold 32px Arial";
+            ctx.font = "bold 36px Arial";
             ctx.textAlign = "center";
-            ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 40);
+            ctx.fillText("MISSION FAILED", canvas.width / 2, canvas.height / 2 - 40);
             
             ctx.fillStyle = "white";
             ctx.font = "20px Arial";
-            ctx.fillText("Total Skor: " + score, canvas.width / 2, canvas.height / 2 + 10);
+            ctx.fillText("Skor Akhir: " + score, canvas.width / 2, canvas.height / 2 + 10);
 
-            startBtn.textContent = "MAIN LAGI";
+            startBtn.textContent = "COBA LAGI";
             startBtn.style.display = "block";
         }
 
-        ctx.fillStyle = "#141423";
+        // Tampilan Awal
+        ctx.fillStyle = "#0d0d1f";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     </script>
 </body>
 </html>
-
-```
