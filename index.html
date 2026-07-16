@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sukutyi - Kode Foto Rapi</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            max-height: 800px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container"></div>
+
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 450,
+        height: 800,
+        parent: 'game-container',
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 500 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+    let player;
+    let obstacles;
+    let score = 0;
+    let scoreText;
+    let isGameOver = false;
+    let spawnTimer;
+
+    function preload() {
+        // Di sini nama panggilannya diubah menjadi 'fto1', 'fto2', 'fto3'
+        // Tapi file yang dibaca tetap file asli WhatsApp Anda agar tidak silang hijau lagi
+        this.load.image('fto1', 'WhatsApp Image 2026-07-16 at 7.56.03 AM.jpeg?v=4'); 
+        this.load.image('fto2', 'WhatsApp Image 2026-07-16 at 8.01.37 AM.jpeg?v=4'); 
+        this.load.image('fto3', 'WhatsApp Image 2026-07-16 at 7.57.37 AM.jpeg?v=4'); 
+    }
+
+    function create() {
+        // Background & Tanah
+        this.add.rectangle(225, 400, 450, 800, 0x87CEEB); 
+        this.add.rectangle(225, 750, 450, 100, 0x4d2922); 
+        
+        let ground = this.physics.add.staticGroup();
+        let groundLine = this.add.rectangle(225, 710, 450, 20, 0x228B22);
+        ground.add(groundLine);
+
+        // --- MENAMPILKAN 3 GAMBAR BERJEJER DI POJOK KANAN ATAS ---
+        let logoSize = 60; 
+        let logoYPos = 60; 
+
+        // Memanggil gambar dengan nama sebutan baru ('fto1', 'fto2', 'fto3')
+        // Gambar 1 (SMKN 1 Sanden) - Paling kanan
+        let img1 = this.add.image(380, logoYPos, 'fto1');
+        img1.setDisplaySize(logoSize, logoSize).setDepth(10);
+
+        // Gambar 2 (RPL) - Di tengah
+        let img2 = this.add.image(315, logoYPos, 'fto2');
+        img2.setDisplaySize(logoSize, logoSize).setDepth(10);
+
+        // Gambar 3 (IC GRUP) - Paling kiri
+        let img3 = this.add.image(250, logoYPos, 'fto3');
+        img3.setDisplaySize(logoSize, logoSize).setDepth(10);
+
+
+        // Karakter Utama: "Sukutyi"
+        let playerBody = this.add.rectangle(0, 0, 40, 50, 0xFF8C00);
+        let eye = this.add.rectangle(10, -10, 8, 8, 0x000000);
+        let mouth = this.add.rectangle(10, 5, 12, 4, 0x000000);
+        
+        let playerContainer = this.add.container(100, 650, [playerBody, eye, mouth]);
+        this.physics.add.existing(playerContainer);
+        player = playerContainer;
+        player.body.setCollideWorldBounds(true);
+        
+        player.body.setSize(15, 20); 
+
+        this.physics.add.collider(player, ground);
+
+        // Grup Rintangan
+        obstacles = this.physics.add.group();
+        this.physics.add.collider(obstacles, ground);
+
+        this.physics.add.overlap(player, obstacles, hitObstacle, null, this);
+
+        // Skor
+        scoreText = this.add.text(20, 20, 'Skor: 0', { fontSize: '28px', fill: '#fff', stroke: '#000', strokeThickness: 4 });
+        scoreText.setDepth(10); 
+
+        // Kontrol Sentuh HP (Lompat)
+        this.input.on('pointerdown', function () {
+            if (player.body.touching.down || player.y >= 650) {
+                player.body.setVelocityY(-350);
+            }
+            
+            if (isGameOver) {
+                resetGame.call(this);
+            }
+        }, this);
+
+        // Memunculkan rintangan secara berkala
+        spawnTimer = this.time.addEvent({
+            delay: 3500,
+            callback: spawnObstacle,
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    function update() {
+        if (isGameOver) return;
+
+        obstacles.getChildren().forEach(function(obstacle) {
+            obstacle.body.setVelocityX(-110); 
+            
+            if (obstacle.x < -50 && !obstacle.passed) {
+                obstacle.passed = true;
+                score += 10;
+                scoreText.setText('Skor: ' + score);
+            }
+        });
+    }
+
+    function spawnObstacle() {
+        if (isGameOver) return;
+
+        let obsBody = this.add.rectangle(0, 0, 20, 30, 0x8A2BE2);
+        let obstacle = this.add.container(500, 690, [obsBody]);
+        
+        this.physics.add.existing(obstacle);
+        obstacle.body.setSize(10, 15);
+        
+        obstacles.add(obstacle);
+        
+        obstacle.body.setCollideWorldBounds(false);
+        obstacle.body.setImmovable(true);
+        obstacle.body.allowGravity = false;
+    }
+
+    function hitObstacle(player, obstacle) {
+        this.physics.pause();
+        isGameOver = true;
+        spawnTimer.destroy();
+        
+        let text1 = this.add.text(125, 350, 'GAME OVER', { fontSize: '40px', fill: '#ff0000', fontWeight: 'bold', stroke: '#fff', strokeThickness: 4 });
+        let text2 = this.add.text(110, 420, 'Ketuk layar untuk main lagi', { fontSize: '18px', fill: '#fff' });
+        text1.setDepth(10);
+        text2.setDepth(10);
+    }
+
+    function resetGame() {
+        isGameOver = false;
+        score = 0;
+        this.scene.restart();
+    }
+</script>
+
+</body>
+</html>
