@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sukutyi - Versi Super Mudah (4 Foto)</title>
+    <title>Sukutyi - Versi Super Mudah (3 Foto Sukses)</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         body {
@@ -62,20 +62,10 @@
     let spawnTimer;
 
     function preload() {
-        // --- MEMUAT SEMUA 4 GAMBAR LOGO ---
-        // Ganti nama file di bawah ini sesuai dengan nama file gambar asli di folder Anda.
-        
-        // Gambar 1: Logo SMKN 1 Sanden
-        this.load.image('logo1', 'fto1.jpeg');
-        
-        // Gambar 2: Logo IC GRUP
-        this.load.image('logo2', 'fto2.jpeg');
-        
-        // Gambar 3: Logo RPL
-        this.load.image('logo3', 'fto3.jpeg');
-        
-        // Gambar 4: Silakan ganti nama file ini sesuai nama file foto ke-4 Anda
-        this.load.image('logo4', 'fto4.jpeg');
+        // --- MEMUAT 3 GAMBAR LOGO SESUAI FILE ANDA ---
+        this.load.image('logo1', 'fto1.jpeg'); // SMKN 1 Sanden
+        this.load.image('logo2', 'fto2.jpeg'); // RPL
+        this.load.image('logo3', 'fto3.jpeg'); // IC GRUP
     }
 
     function create() {
@@ -87,22 +77,21 @@
         let groundLine = this.add.rectangle(225, 710, 450, 20, 0x228B22);
         ground.add(groundLine);
 
-        // --- MENAMPILKAN DAN MENGATUR POSISI 4 GAMBAR DI POJOK KANAN ATAS (FORMASI 2x2) ---
-        let logoSize = 55; // Ukuran kotak logo sedikit diperkecil agar pas
+        // --- MENAMPILKAN 3 GAMBAR BERJEJER DI POJOK KANAN ATAS ---
+        let logoSize = 60; // Ukuran kotak logo pas
+        let logoYPos = 60; // Posisi tinggi dari atas layar
 
-        // Baris Atas (Y = 50)
-        let img1 = this.add.image(355, 50, 'logo1'); // Kiri atas
+        // Gambar 1: Paling kanan (SMKN 1 Sanden)
+        let img1 = this.add.image(380, logoYPos, 'logo1');
         img1.setDisplaySize(logoSize, logoSize).setDepth(10);
 
-        let img2 = this.add.image(415, 50, 'logo2'); // Kanan atas
+        // Gambar 2: Di tengah (RPL)
+        let img2 = this.add.image(315, logoYPos, 'logo2');
         img2.setDisplaySize(logoSize, logoSize).setDepth(10);
 
-        // Baris Bawah (Y = 110)
-        let img3 = this.add.image(355, 110, 'logo3'); // Kiri bawah
+        // Gambar 3: Paling kiri (IC GRUP)
+        let img3 = this.add.image(250, logoYPos, 'logo3');
         img3.setDisplaySize(logoSize, logoSize).setDepth(10);
-
-        let img4 = this.add.image(415, 110, 'logo4'); // Kanan bawah
-        img4.setDisplaySize(logoSize, logoSize).setDepth(10);
 
 
         // Karakter Utama: "Sukutyi"
@@ -128,7 +117,7 @@
 
         // Skor
         scoreText = this.add.text(20, 20, 'Skor: 0', { fontSize: '28px', fill: '#fff', stroke: '#000', strokeThickness: 4 });
-        scoreText.setDepth(10); // Agar tidak tertutup objek lain
+        scoreText.setDepth(10); 
 
         // Kontrol Sentuh HP (Lompat)
         this.input.on('pointerdown', function () {
